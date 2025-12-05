@@ -83,31 +83,13 @@
     max-height:88vh;
     overflow:auto;
   }
-  .review-item{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:10px 0;
-    border-bottom:1px solid #eee;
-  }
-  .qty-controls{display:flex;gap:8px;align-items:center}
-  .smallBtn{
-    background:#eee;
-    border:0;
-    padding:4px 10px;
-    font-size:18px;
-    font-weight:800;
-    border-radius:6px;
-    cursor:pointer;
-  }
 
-  /* BOTTOM BAR FIXED */
+  /* BOTTOM BAR */
   .bottom-bar{
     position:fixed;
     left:0;right:0;bottom:0;
     background:#fff;
     padding:10px;
-    padding-bottom:20px; /* FIXED OVERLAPPING ISSUE */
     border-top:1px solid #eee;
     box-shadow:0 -6px 18px rgba(0,0,0,.06);
     z-index:999;
@@ -139,7 +121,6 @@
 
 <body>
 
-<!-- HEADER -->
 <div class="wrap">
   <header>
     <div>
@@ -149,10 +130,8 @@
     <div id="cartSummary" class="lead">0 items • ₹0</div>
   </header>
 
-  <!-- MENU -->
   <div id="menuGrid"></div>
 
-  <!-- CUSTOMER DETAILS -->
   <div style="margin-top:12px" class="card">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <input id="name_input" placeholder="Your Name" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e6e6">
@@ -196,38 +175,33 @@
 </div>
 
 <script>
-/* OWNER NUMBER */
 const phoneNumber = "917020330205";
 
-/* MENU ITEMS */
 const items = [
-  {id:"1", name:"Plain Dosa", price:80, image:"https://i.imgur.com/2Xx3iGp.jpg"},
-  {id:"2", name:"Masala Dosa", price:100, image:"https://i.imgur.com/Atm2yJD.jpg"},
-  {id:"3", name:"Vada Pav", price:25, image:"https://i.imgur.com/bBN9l3x.jpg"},
-  {id:"4", name:"Idli Sambar", price:50, image:"https://i.imgur.com/ZzT0p4e.jpg"},
-  {id:"5", name:"Sambar Wada", price:50, image:"https://i.imgur.com/aqTgEB4.jpg"},
-  {id:"6", name:"Samosa", price:40, image:"https://i.imgur.com/WFNT5rP.jpg"},
-  {id:"7", name:"Kachori", price:40, image:"https://i.imgur.com/2dIbn1l.jpg"},
-  {id:"8", name:"Uttapam", price:100, image:"https://i.imgur.com/1f7u5lb.jpg"},
-  {id:"9", name:"Dahi Samosa", price:70, image:"https://i.imgur.com/IVbQtHr.jpg"},
-  {id:"10", name:"Cold Coffee", price:60, image:"https://i.imgur.com/T4MnZ1o.jpg"},
-  {id:"11", name:"Icecream", price:50, image:"https://i.imgur.com/f8qYx5x.jpg"},
-  {id:"12", name:"Tea", price:20, image:"https://i.imgur.com/6mZ2oKm.jpg"},
-  {id:"13", name:"Water Bottle", price:20, image:"https://i.imgur.com/M2tfe9c.jpg"}
+  {id:"1", name:"Plain Dosa", price:80},
+  {id:"2", name:"Masala Dosa", price:100},
+  {id:"3", name:"Vada Pav", price:25},
+  {id:"4", name:"Idli Sambar", price:50},
+  {id:"5", name:"Sambar Wada", price:50},
+  {id:"6", name:"Samosa", price:40},
+  {id:"7", name:"Kachori", price:40},
+  {id:"8", name:"Uttapam", price:100},
+  {id:"9", name:"Dahi Samosa", price:70},
+  {id:"10", name:"Cold Coffee", price:60},
+  {id:"11", name:"Icecream", price:50},
+  {id:"12", name:"Tea", price:20},
+  {id:"13", name:"Water Bottle", price:20}
 ];
 
 let cart = {};
 
-/* LOAD MENU */
 function loadMenu(){
   let html = "";
   items.forEach(it=>{
     html += `
     <div class="card">
-      <div class="imgwrap"><img src="${it.image}" alt="${it.name}"></div>
       <div class="item-title">${it.name}</div>
       <div class="price">₹${it.price}</div>
-
       <div class="controls">
         <input id="qty_${it.id}" class="qty" type="number" min="1" value="1">
         <button class="btn" onclick="addToCart('${it.id}')">Add</button>
@@ -238,46 +212,42 @@ function loadMenu(){
 }
 loadMenu();
 
-/* ADD TO CART */
 function addToCart(id){
   let q = parseInt(document.getElementById("qty_"+id).value) || 1;
   cart[id] = (cart[id] || 0) + q;
   updateCartSummary();
-  alert("Added to cart");
 }
 
-/* CART SUMMARY */
 function updateCartSummary(){
-  let total = 0, itemsCount = 0;
+  let total = 0, count = 0;
   for(let id in cart){
-    const it = items.find(x=>x.id===id);
-    itemsCount += cart[id];
-    total += it.price * cart[id];
+    let it = items.find(x=>x.id===id);
+    count += cart[id];
+    total += cart[id] * it.price;
   }
-  document.getElementById("cartSummary").innerText = `${itemsCount} items • ₹${total}`;
-  document.getElementById("bottomTotal").innerText = "₹" + total;
-  document.getElementById("bottomBar").style.display = itemsCount>0 ? 'block':'none';
+  document.getElementById("cartSummary").innerText = `${count} items • ₹${total}`;
+  document.getElementById("bottomTotal").innerText = "₹"+total;
+  document.getElementById("bottomBar").style.display = count>0 ? "block":"none";
 }
 
-/* SHOW REVIEW */
 function showReview(){
-  const name = document.getElementById("name_input").value.trim();
-  const table = document.getElementById("table_input").value.trim();
+  const name = name_input.value.trim();
+  const table = table_input.value.trim();
   if(!name || !table){
-    alert("Please enter Name and Table/Delivery before reviewing.");
+    alert("Please enter Name & Table number.");
     return;
   }
 
-  let listHTML = "";
+  let html = "";
   let total = 0;
 
   for(let id in cart){
     const it = items.find(x=>x.id===id);
-    let qty = cart[id];
-    let line = it.price * qty;
+    let q = cart[id];
+    let line = q * it.price;
     total += line;
 
-    listHTML += `
+    html += `
       <div class="review-item">
         <div>
           <div style="font-weight:800">${it.name}</div>
@@ -287,16 +257,16 @@ function showReview(){
           <div style="font-weight:800">₹${line}</div>
           <div class="qty-controls">
             <button class="smallBtn" onclick="changeQty('${id}',-1)">-</button>
-            <span>${qty}</span>
+            <span>${q}</span>
             <button class="smallBtn" onclick="changeQty('${id}',1)">+</button>
           </div>
-          <button style="background:none;border:0;color:red;margin-top:8px" onclick="removeItem('${id}')">Remove</button>
+          <button style="background:none;color:red;border:0;margin-top:8px" onclick="removeItem('${id}')">Remove</button>
         </div>
       </div>`;
   }
 
-  document.getElementById("reviewList").innerHTML = listHTML;
-  document.getElementById("reviewTotal").innerText = "₹" + total;
+  document.getElementById("reviewList").innerHTML = html;
+  document.getElementById("reviewTotal").innerText = "₹"+total;
 
   document.getElementById("reviewModal").style.display = "flex";
 }
@@ -306,7 +276,7 @@ function closeReview(){
 }
 
 function changeQty(id, delta){
-  cart[id] = cart[id] + delta;
+  cart[id] += delta;
   if(cart[id] <=0) delete cart[id];
   showReview();
   updateCartSummary();
@@ -318,35 +288,33 @@ function removeItem(id){
   updateCartSummary();
 }
 
-/* CONFIRM ORDER */
 function confirmFinalOrder(){
-  const name = document.getElementById("name_input").value.trim();
-  const table = document.getElementById("table_input").value.trim();
+  const name = name_input.value.trim();
+  const table = table_input.value.trim();
 
-  let orderText = `*Mounvee Snacks Centre*\n\n`;
+  let text = `*Mounvee Snacks Centre*\n\n`;
   let total = 0;
 
   for(let id in cart){
-    const it = items.find(x=>x.id===id);
+    let it = items.find(x=>x.id===id);
     let q = cart[id];
-    let line = it.price * q;
+    let line = q * it.price;
     total += line;
-    orderText += `${it.name} x${q} - ₹${line}\n`;
+    text += `${it.name} x${q} - ₹${line}\n`;
   }
 
-  orderText += `\n🧾 *Total: ₹${total}*\n\nCustomer: ${name}\nTable/Delivery: ${table}`;
+  text += `\n*Total: ₹${total}*\n\nCustomer: ${name}\nTable: ${table}`;
 
-  let encoded = encodeURIComponent(orderText);
-  window.open(`https://wa.me/${phoneNumber}?text=${encoded}`, "_blank");
+  window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`, "_blank");
 
-  alert("Order sent to WhatsApp!");
+  alert("Order opened in WhatsApp!");
+
   cart = {};
   updateCartSummary();
   closeReview();
 }
-
 </script>
+
 </body>
 </html>
-
 
