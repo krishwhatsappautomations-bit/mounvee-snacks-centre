@@ -48,11 +48,11 @@
     cursor:pointer;
   }
 
-  /* REVIEW */
+  /* REVIEW MODAL */
   #reviewModal{
     display:none;
     position:fixed;
-    left:0; right:0; top:0; bottom:0;
+    left:0;right:0;top:0;bottom:0;
     background:rgba(0,0,0,.45);
     align-items:center;
     justify-content:center;
@@ -68,15 +68,15 @@
     overflow:auto;
   }
 
-  /* FIXED BOTTOM BAR (FIXED) */
+  /* FIXED BOTTOM BAR (FINAL FIX) */
   .bottom-bar{
     position:fixed;
     left:0;
     right:0;
     bottom:0;
     background:#fff;
-    padding:10px;
-    padding-bottom:40px !important; /* 👈 FIX - input no longer hidden */
+    padding:12px;
+    padding-bottom:65px !important; /* FINAL FIX */
     border-top:1px solid #eee;
     box-shadow:0 -6px 18px rgba(0,0,0,.06);
     z-index:999;
@@ -122,11 +122,13 @@
 
   <div id="menuGrid"></div>
 
-  <!-- FIX APPLIED HERE -->
-  <div style="margin-top:12px; margin-bottom:60px;" class="card">
+  <!-- FIX: Extra spacing below so inputs are always visible -->
+  <div style="margin-top:12px; margin-bottom:140px;" class="card">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <input id="name_input" placeholder="Your Name" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e6e6">
-      <input id="table_input" placeholder="Table / Delivery" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e6e6">
+      <input id="name_input" placeholder="Your Name"
+             style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e6e6">
+      <input id="table_input" placeholder="Table / Delivery"
+             style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e6e6">
     </div>
 
     <div style="margin-top:10px">
@@ -155,7 +157,7 @@
   </div>
 </div>
 
-<!-- BOTTOM BAR FIXED -->
+<!-- BOTTOM BAR -->
 <div id="bottomBar" class="bottom-bar" style="display:none">
   <div class="bar-inner">
     <div>
@@ -240,14 +242,12 @@ function showReview(){
     total += line;
 
     html += `
-      <div class="review-item">
+      <div class="review-item" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee">
         <div>
           <div style="font-weight:800">${it.name}</div>
           <div class="lead">₹${it.price} each</div>
         </div>
-        <div style="text-align:right">
-          <div style="font-weight:800">₹${line}</div>
-        </div>
+        <div style="font-weight:800">₹${line}</div>
       </div>`;
   }
 
@@ -287,5 +287,4 @@ function confirmFinalOrder(){
 
 </body>
 </html>
-
 
