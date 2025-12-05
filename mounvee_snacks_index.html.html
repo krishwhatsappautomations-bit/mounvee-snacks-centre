@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mounvee Snacks Centre — Menu</title>
+<style>
+  :root{--accent:#03c26f;--muted:#666;--card:#fff}
+  *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+  body{margin:0;background:#f4f6f8;color:#111}
+  .wrap{max-width:900px;margin:0 auto;padding:12px}
+  header{display:flex;align-items:center;gap:12px;padding:6px 0;justify-content:space-between}
+  h1{font-size:20px;margin:0}
+  .lead{color:var(--muted);font-size:13px;margin-top:4px}
+  #menuGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
+  .card{background:var(--card);padding:12px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .imgwrap{height:140px;border-radius:8px;overflow:hidden;background:#f0f0f0;margin-bottom:8px;display:flex;align-items:center;justify-content:center}
+  .imgwrap img{width:100%;height:100%;object-fit:cover}
+  .item-title{font-weight:700;margin:0 0 6px}
+  .price{color:var(--accent);font-weight:800}
+  .controls{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .qty{width:64px;padding:6px;border-radius:6px;border:1px solid #e4e6ea;text-align:center}
+  .btn{background:var(--accent);color:#fff;border:0;padding:10px 12px;border-radius:8px;font-weight:700;cursor:pointer}
+  .small{font-size:13px;color:var(--muted)}
+
+  /* review modal */
+  #reviewModal{display:none;position:fixed;left:0;right:0;top:0;bottom:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:9999}
+  .modalCard{width:92%;max-width:720px;background:#fff;border-radius:10px;padding:14px;max-height:88vh;overflow:auto}
+  .review-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0}
+  .qty-controls{display:flex;gap:8px;align-items:center}
+  .smallBtn{background:transparent;border:0;color:#333;font-weight:700;font-size:18px;padding:6px 8px;border-radius:6px;cursor:pointer}
+
+  /* bottom bar */
+  .bottom-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;padding:10px;border-top:1px solid #eee;box-shadow:0 -6px 18px rgba(0,0,0,.06)}
+  .bar-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px}
+  .confirmBtn{background:var(--accent);color:#fff;padding:12px 18px;border-radius:8px;border:0;font-weight:700;width:260px;cursor:pointer}
+  .totalText{font-weight:800}
+
+  @media (max-width:420px){
+    .bar-inner{flex-direction:column;gap:8px}
+    .confirmBtn{width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🍽 Mounvee Snacks Centre</h1>
+      <div class="lead">Scan • Select • Review • Confirm — Final order will be sent to shop via WhatsApp</div>
+    </div>
+    <div id="cartSummary" class="small">0 items • ₹0</div>
+  </header>
+
+  <div id="menuGrid"></div>
+
+  <div style="margin-top:12px" class="card">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input id="name_input" placeholder="Your Name" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e6e6">
+      <input id="table_input" placeholder="Table / Delivery (e.g. Table 3 or Home)" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e6e6">
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn" onclick="showReview()">Review Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEW MODAL -->
+<div id="reviewModal">
+  <div class="modalCard">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:800">Review Your Order</div>
+      <div><button class="btn" onclick="closeReview()">Close</button></div>
+    </div>
+
+    <div id="reviewList" style="margin-top:12px"></div>
+
+    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="small">Total</div>
+        <div id="reviewTotal" style="font-weight:800">₹0</div>
+      </div>
+      <div>
+        <button id="confirmBtn" class="confirmBtn" onclick="confirmFinalOrder()">CONFIRM FINAL ORDER</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- sticky bottom bar for mobile -->
+<div id="bottomBar" class="bottom-bar" style="display:none">
+  <div class="bar-inner">
+    <div>
+      <div class="small">Total</div>
+      <div id="bottomTotal" class="totalText">₹0</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="confirmBtn" onclick="showReview()">Review Order</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== CONFIG / CLIENT CUSTOM ===== */
+const phoneNumber = "917020330205"; // +91 7020330205
+const shopName = "Mounvee Snacks Centre";
+/* ImgBB key optional - if you want bill image automatically uploaded, paste your ImgBB API key here */
+const IMG_BB_KEY = "956539c8c9e7053902668964f579be06"; // e.g. "9565..."; leave empty to skip image upload
+
+/* ===== MENU ITEMS (static) =====
+   Using Option B: images auto-assigned (stock imgur links)
+*/
+const items = [
+  {id:"1", name:"Plain Dosa", price:80, image:"https://i.imgur.com/2Xx3iGp.jpg", category:"Dosa"},
+  {id:"2", name:"Masala Dosa", price:100, image:"https://i.imgur.com/Atm2yJD.jpg", category:"Dosa"},
+  {id:"3", name:"Vada Pav", price:25, image:"https://i.imgur.com/bBN9l3x.jpg", category:"Snacks"},
+  {id:"4", name:"Idli Sambar", price:50, image:"https://i.imgur.com/ZzT0p4e.jpg", category:"Idli"},
+  {id:"5", name:"Sambar Wada", price:50, image:"https://i.imgur.com/aqTgEB4.jpg", category:"Snacks"},
+  {id:"6", name:"Samosa", price:40, image:"https://i.imgur.com/WFNT5rP.jpg", category:"Snacks"},
+  {id:"7", name:"Kachori", price:40, image:"https://i.imgur.com/2dIbn1l.jpg", category:"Snacks"},
+  {id:"8", name:"Uttapam", price:100, image:"https://i.imgur.com/1f7u5lb.jpg", category:"Breakfast"},
+  {id:"9", name:"Dahi Samosa", price:70, image:"https://i.imgur.com/IVbQtHr.jpg", category:"Snacks"},
+  {id:"10", name:"Cold Coffee", price:60, image:"https://i.imgur.com/T4MnZ1o.jpg", category:"Drinks"},
+  {id:"11", name:"Icecream", price:50, image:"https://i.imgur.com/f8qYx5x.jpg", category:"Dessert"},
+  {id:"12", name:"Tea", price:20, image:"https://i.imgur.com/6mZ2oKm.jpg", category:"Drinks"},
+  {id:"13", name:"Water Bottle", price:20, image:"https://i.imgur.com/M2tfe9c.jpg", category:"Drinks"}
+];
+
+/* ===== STATE ===== */
+let cart = {}; // id -> qty
+
+/* ===== UTIL ===== */
+function $(id){ return document.getElementById(id); }
+
+function loadMenu(){
+  const grid = $("menuGrid");
+  let html = "";
+  items.forEach(it=>{
+    html += `<div class="card">
+      <div class="imgwrap"><img src="${it.image}" alt="${it.name}"></div>
+      <div class="item-title">${it.name}</div>
+      <div class="price">₹${it.price}</div>
+      <div class="controls">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn" onclick="addToCart('${it.id}')">Add</button>
+          Qty: <input id="qty_${it.id}" class="qty" type="number" min="1" value="1" style="width:72px;padding:6px;border-radius:6px;border:1px solid #e4e6ea;text-align:center">
+        </div>
+      </div>
+    </div>`;
+  });
+  grid.innerHTML = html;
+  updateCartSummary();
+  updateBottomBar();
+}
+loadMenu();
+
+function addToCart(id){
+  const qEl = $("qty_"+id);
+  const q = Math.max(1, parseInt(qEl.value) || 1);
+  cart[id] = (cart[id] || 0) + q;
+  updateCartSummary();
+  alert("Added to cart");
+}
+
+function updateCartSummary(){
+  let itemsCount = 0, total=0;
+  Object.entries(cart).forEach(([id,qty])=>{
+    const it = items.find(x=> x.id===id);
+    if(it){ itemsCount += qty; total += qty * it.price; }
+  });
+  $("cartSummary").innerText = `${itemsCount} items • ₹${total}`;
+  $("bottomTotal").innerText = "₹" + total;
+  // show bottom bar on mobile if cart not empty
+  if(itemsCount > 0) $("bottomBar").style.display = 'block'; else $("bottomBar").style.display = 'none';
+}
+
+/* ===== REVIEW ===== */
+function showReview(){
+  const name = $("name_input").value.trim();
+  const table = $("table_input").value.trim();
+  if(!name || !table){ alert("Please enter Name and Table/Delivery before reviewing."); return; }
+  const list = $("reviewList");
+  list.innerHTML = '';
+  let total = 0;
+  Object.entries(cart).forEach(([id,qty])=>{
+    const it = items.find(x=> x.id===id);
+    if(!it) return;
+    const lineTotal = qty * it.price;
+    total += lineTotal;
+    const el = document.createElement('div');
+    el.className = 'review-item';
+    el.innerHTML = `<div>
+        <div style="font-weight:800">${it.name}</div>
+        <div class="small">₹${it.price} each</div>
+      </div>
+      <div style="text-align:right;min-width:160px">
+        <div style="font-weight:800">₹${lineTotal}</div>
+        <div class="qty-controls" style="margin-top:6px">
+          <button class="smallBtn" onclick="changeQty('${id}', -1)">−</button>
+          <span style="min-width:28px;text-align:center;display:inline-block">${qty}</span>
+          <button class="smallBtn" onclick="changeQty('${id}', 1)">+</button>
+        </div>
+        <div style="margin-top:6px"><button style="background:transparent;border:0;color:#d00;cursor:pointer" onclick="removeItem('${id}')">Remove</button></div>
+      </div>`;
+    list.appendChild(el);
+  });
+  $("reviewTotal").innerText = "₹" + total;
+  $("reviewModal").style.display = 'flex';
+}
+
+/* review actions */
+function closeReview(){ $("reviewModal").style.display = 'none'; }
+function changeQty(id, delta){
+  cart[id] = Math.max(1, (cart[id] || 1) + delta);
+  if(cart[id] <= 0) delete cart[id];
+  showReview();
+  updateCartSummary();
+}
+function removeItem(id){
+  delete cart[id];
+  showReview();
+  updateCartSummary();
+}
+
+/* ===== BILL IMAGE GENERATION ===== */
+function generateBillImageDataURL(ordered, name, table, orderId){
+  return new Promise(resolve => {
+    let bill = `${shopName}\nOrder ID: #${orderId}\nCustomer: ${name}\nTable/Delivery: ${table}\n\nItems:\n`;
+    let totalAmount = 0;
+    ordered.forEach(o=>{
+      bill += `${o.name} (x${o.qty}) - ₹${o.lineTotal}\n`;
+      totalAmount += o.lineTotal;
+    });
+    bill += `\nTotal Amount: ₹${totalAmount}\n\nThank you!`;
+
+    const width = 480;
+    const lineHeight = 36;
+    const lines = bill.split("\n");
+    const height = Math.max(400, (lines.length + 2) * lineHeight + 40);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#000";
+    ctx.font = "28px Arial";
+    ctx.fillText(shopName, 20, 40);
+    ctx.font = "20px Arial";
+    ctx.fillText(`Order ID: #${orderId}`, 20, 80);
+    ctx.font = "18px Arial";
+    let y = 120;
+    lines.forEach(line=>{
+      ctx.fillText(line, 20, y);
+      y += lineHeight;
+    });
+    resolve(canvas.toDataURL("image/png"));
+  });
+}
+
+/* ===== ImgBB upload (optional) ===== */
+async function uploadToImgBB(base64DataURL){
+  if(!IMG_BB_KEY) return '';
+  try {
+    const base64 = base64DataURL.split(',')[1];
+    const form = new FormData();
+    form.append('key', IMG_BB_KEY);
+    form.append('image', base64);
+    const resp = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: form });
+    const json = await resp.json();
+    if(json && json.success) return json.data.url;
+    return '';
+  } catch(e){ console.error(e); return ''; }
+}
+
+/* ===== CONFIRM ORDER ===== */
+async function confirmFinalOrder(){
+  const name = $("name_input").value.trim();
+  const table = $("table_input").value.trim();
+  if(!name || !table){ alert("Please enter Name and Table/Delivery before confirming."); return; }
+
+  const ordered = [];
+  let totalAmount = 0;
+  Object.entries(cart).forEach(([id,qty])=>{
+    const it = items.find(x=> x.id===id);
+    if(!it) return;
+    const lineTotal = it.price * qty;
+    ordered.push({id, name: it.name, qty, lineTotal});
+    totalAmount += lineTotal;
+  });
+  if(ordered.length === 0){ alert('Cart empty'); return; }
+
+  const orderId = Math.floor(10000 + Math.random()*90000);
+
+  try {
+    // small UI lock
+    const btn = $("confirmBtn");
+    const prevTxt = btn.innerText;
+    btn.innerText = "Processing...";
+    btn.disabled = true;
+
+    const dataURL = await generateBillImageDataURL(ordered, name, table, orderId);
+    const imageURL = await uploadToImgBB(dataURL); // if IMG_BB_KEY blank returns ''
+
+    const orderLines = ordered.map(o => `${o.name} x${o.qty} - ₹${o.lineTotal}`).join('\n');
+
+    const finalText =
+      `*${shopName}*\n` +
+      `Order ID: #${orderId}\n\n` +
+      `${orderLines}\n\n` +
+      `🧾 *Total: ₹${totalAmount}*\n\n` +
+      `Customer: ${name}\n` +
+      `Table/Delivery: ${table}\n\n` +
+      (imageURL ? `Bill Image: ${imageURL}` : '');
+
+    const encoded = encodeURIComponent(finalText);
+    // open whatsapp with owner number
+    window.open(`https://wa.me/${phoneNumber}?text=${encoded}`, '_blank');
+
+    // cleanup
+    btn.innerText = prevTxt;
+    btn.disabled = false;
+    cart = {};
+    updateCartSummary();
+    closeReview();
+    alert('Final order prepared — WhatsApp opened to send to owner.');
+  } catch(err){
+    console.error(err);
+    alert('Failed to process order. Try again.');
+    $("confirmBtn").innerText = "CONFIRM FINAL ORDER";
+    $("confirmBtn").disabled = false;
+  }
+}
+
+/* ===== small helpers ===== */
+function updateBottomBar(){ // sync bottom total on load
+  let total=0;
+  Object.entries(cart).forEach(([id,qty])=>{
+    const it = items.find(x=> x.id===id);
+    if(it) total += it.price * qty;
+  });
+  $("bottomTotal").innerText = "₹" + total;
+  if(total>0) $("bottomBar").style.display='block'; else $("bottomBar").style.display='none';
+}
+
+/* prevent accidental number arrows on mobile stepping */
+document.addEventListener('input', ()=> {
+  updateCartSummary();
+  updateBottomBar();
+});
+</script>
+</body>
+</html>
