@@ -14,7 +14,6 @@
   h1{font-size:20px;margin:0}
   .lead{color:var(--muted);font-size:13px;margin-top:4px}
 
-  /* GRID */
   #menuGrid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
@@ -22,26 +21,11 @@
     margin-top:12px;
   }
 
-  /* CARD */
   .card{
     background:var(--card);
     padding:12px;
     border-radius:10px;
     box-shadow:0 2px 8px rgba(0,0,0,.06)
-  }
-
-  .imgwrap{
-    height:150px;
-    border-radius:8px;
-    overflow:hidden;
-    background:#f0f0f0;
-    margin-bottom:8px;
-  }
-  .imgwrap img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
   }
 
   .item-title{font-weight:700;margin:0 0 6px}
@@ -64,11 +48,11 @@
     cursor:pointer;
   }
 
-  /* REVIEW MODAL */
+  /* REVIEW */
   #reviewModal{
     display:none;
     position:fixed;
-    left:0;right:0;top:0;bottom:0;
+    left:0; right:0; top:0; bottom:0;
     background:rgba(0,0,0,.45);
     align-items:center;
     justify-content:center;
@@ -84,16 +68,20 @@
     overflow:auto;
   }
 
-  /* BOTTOM BAR */
+  /* FIXED BOTTOM BAR (FIXED) */
   .bottom-bar{
     position:fixed;
-    left:0;right:0;bottom:0;
+    left:0;
+    right:0;
+    bottom:0;
     background:#fff;
     padding:10px;
+    padding-bottom:40px !important; /* 👈 FIX - input no longer hidden */
     border-top:1px solid #eee;
     box-shadow:0 -6px 18px rgba(0,0,0,.06);
     z-index:999;
   }
+
   .bar-inner{
     max-width:900px;
     margin:0 auto;
@@ -102,6 +90,7 @@
     align-items:center;
     gap:10px;
   }
+
   .confirmBtn{
     background:var(--accent);
     color:#fff;
@@ -112,6 +101,7 @@
     cursor:pointer;
     width:260px;
   }
+
   @media(max-width:420px){
     .bar-inner{flex-direction:column;gap:8px}
     .confirmBtn{width:100%}
@@ -132,11 +122,13 @@
 
   <div id="menuGrid"></div>
 
-  <div style="margin-top:12px" class="card">
+  <!-- FIX APPLIED HERE -->
+  <div style="margin-top:12px; margin-bottom:60px;" class="card">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <input id="name_input" placeholder="Your Name" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e6e6">
       <input id="table_input" placeholder="Table / Delivery" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e6e6">
     </div>
+
     <div style="margin-top:10px">
       <button class="btn" onclick="showReview()">Review Order</button>
     </div>
@@ -163,7 +155,7 @@
   </div>
 </div>
 
-<!-- BOTTOM BAR -->
+<!-- BOTTOM BAR FIXED -->
 <div id="bottomBar" class="bottom-bar" style="display:none">
   <div class="bar-inner">
     <div>
@@ -208,26 +200,26 @@ function loadMenu(){
       </div>
     </div>`;
   });
-  document.getElementById("menuGrid").innerHTML = html;
+  menuGrid.innerHTML = html;
 }
 loadMenu();
 
 function addToCart(id){
   let q = parseInt(document.getElementById("qty_"+id).value) || 1;
   cart[id] = (cart[id] || 0) + q;
-  updateCartSummary();
+  updateSummary();
 }
 
-function updateCartSummary(){
+function updateSummary(){
   let total = 0, count = 0;
   for(let id in cart){
     let it = items.find(x=>x.id===id);
     count += cart[id];
     total += cart[id] * it.price;
   }
-  document.getElementById("cartSummary").innerText = `${count} items • ₹${total}`;
-  document.getElementById("bottomTotal").innerText = "₹"+total;
-  document.getElementById("bottomBar").style.display = count>0 ? "block":"none";
+  cartSummary.innerText = `${count} items • ₹${total}`;
+  bottomTotal.innerText = "₹"+total;
+  bottomBar.style.display = count>0 ? "block":"none";
 }
 
 function showReview(){
@@ -242,7 +234,7 @@ function showReview(){
   let total = 0;
 
   for(let id in cart){
-    const it = items.find(x=>x.id===id);
+    let it = items.find(x=>x.id===id);
     let q = cart[id];
     let line = q * it.price;
     total += line;
@@ -255,37 +247,17 @@ function showReview(){
         </div>
         <div style="text-align:right">
           <div style="font-weight:800">₹${line}</div>
-          <div class="qty-controls">
-            <button class="smallBtn" onclick="changeQty('${id}',-1)">-</button>
-            <span>${q}</span>
-            <button class="smallBtn" onclick="changeQty('${id}',1)">+</button>
-          </div>
-          <button style="background:none;color:red;border:0;margin-top:8px" onclick="removeItem('${id}')">Remove</button>
         </div>
       </div>`;
   }
 
-  document.getElementById("reviewList").innerHTML = html;
-  document.getElementById("reviewTotal").innerText = "₹"+total;
-
-  document.getElementById("reviewModal").style.display = "flex";
+  reviewList.innerHTML = html;
+  reviewTotal.innerText = "₹"+total;
+  reviewModal.style.display = "flex";
 }
 
 function closeReview(){
-  document.getElementById("reviewModal").style.display = "none";
-}
-
-function changeQty(id, delta){
-  cart[id] += delta;
-  if(cart[id] <=0) delete cart[id];
-  showReview();
-  updateCartSummary();
-}
-
-function removeItem(id){
-  delete cart[id];
-  showReview();
-  updateCartSummary();
+  reviewModal.style.display = "none";
 }
 
 function confirmFinalOrder(){
@@ -307,14 +279,13 @@ function confirmFinalOrder(){
 
   window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`, "_blank");
 
-  alert("Order opened in WhatsApp!");
-
   cart = {};
-  updateCartSummary();
+  updateSummary();
   closeReview();
 }
 </script>
 
 </body>
 </html>
+
 
