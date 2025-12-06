@@ -138,7 +138,10 @@ const shopName = "Mounvee Snacks Centre";
 const phoneNumber = "917020330205";
 const IMG_BB_KEY = "956539c8c9e7053902668964f579be06";
 
-/* ===== MENU ITEMS (images optional) ===== */
+/* ⭐ FIXED PRINT URL (IMPORTANT) */
+const PRINT_BASE = "https://krishwhatsappautomations-bit.github.io/mounvee-snacks-centre/print.html";
+
+/* ===== MENU ITEMS ===== */
 const items = [
   {id:"1",  name:"Plain Dosa",    price:80,  image:"https://via.placeholder.com/400x260?text=Plain+Dosa"},
   {id:"2",  name:"Masala Dosa",   price:100, image:"https://via.placeholder.com/400x260?text=Masala+Dosa"},
@@ -157,7 +160,7 @@ const items = [
 
 /* ===== STATE ===== */
 let cart = {};
-let lastBillImgURL = "";  // for printing page
+let lastBillImgURL = "";
 
 function $(id){ return document.getElementById(id); }
 
@@ -185,6 +188,7 @@ function loadMenu(){
 }
 loadMenu();
 
+/* Qty change in menu */
 function menuQty(id,delta){
   const el=$("mqty_"+id);
   let v=parseInt(el.innerText)||1;
@@ -193,6 +197,7 @@ function menuQty(id,delta){
   el.innerText=v;
 }
 
+/* Add item to cart */
 function addToCart(id){
   const qty=parseInt($("mqty_"+id).innerText);
   cart[id]=(cart[id]||0)+qty;
@@ -200,7 +205,7 @@ function addToCart(id){
   alert("Added to cart");
 }
 
-/* ===== SUMMARY ===== */
+/* Get cart array */
 function getCart(){
   const arr=[];
   for(const id in cart){
@@ -212,6 +217,7 @@ function getCart(){
   return arr;
 }
 
+/* Update summary */
 function updateSummary(){
   const c=getCart();
   let total=0,count=0;
@@ -221,7 +227,7 @@ function updateSummary(){
   $("bottomBar").style.display=count>0?"block":"none";
 }
 
-/* ===== REVIEW ===== */
+/* Open review modal */
 function openReview(){
   const name=$("name_input").value.trim();
   const table=$("table_input").value.trim();
@@ -236,6 +242,7 @@ function openReview(){
 
 function closeReview(){ $("reviewModal").style.display="none"; }
 
+/* Render review list */
 function renderReview(){
   const c=getCart();
   let total=0;
@@ -267,6 +274,7 @@ function renderReview(){
   $("reviewTotal").innerText="₹"+total;
 }
 
+/* Qty change inside review */
 function changeQty(id,d){
   cart[id]=(cart[id]||0)+d;
   if(cart[id]<=0)delete cart[id];
@@ -274,13 +282,14 @@ function changeQty(id,d){
   updateSummary();
 }
 
+/* Remove item */
 function removeItem(id){
   delete cart[id];
   renderReview();
   updateSummary();
 }
 
-/* ===== BILL IMAGE GENERATION ===== */
+/* BILL IMAGE GENERATOR */
 function generateBill(c,name,table,orderId){
   return new Promise(res=>{
     let total=0;
@@ -314,7 +323,7 @@ function generateBill(c,name,table,orderId){
   });
 }
 
-/* ===== ImgBB upload ===== */
+/* Upload to ImgBB */
 async function uploadImg(dataURL){
   try{
     const b64=dataURL.split(",")[1];
@@ -328,7 +337,7 @@ async function uploadImg(dataURL){
   }catch{return "";}
 }
 
-/* ===== CONFIRM ORDER ===== */
+/* CONFIRM FINAL ORDER */
 async function confirmFinalOrder(){
   const name=$("name_input").value.trim();
   const table=$("table_input").value.trim();
@@ -352,7 +361,7 @@ async function confirmFinalOrder(){
       return `${ci.name} x${ci.qty} - ₹${ci.line}`;
     }).join("\n");
 
-    let msg=
+    let msg =
 `*${shopName}*
 Order ID: *#${orderId}*
 
@@ -364,7 +373,7 @@ Customer: ${name}
 Table/Delivery: ${table}
 
 🖨 Print Bill:
-${location.origin}/print.html?img=${encodeURIComponent(imgURL)}
+${PRINT_BASE}?img=${encodeURIComponent(imgURL)}
 
 Bill Image:
 ${imgURL}
@@ -382,5 +391,6 @@ ${imgURL}
   }
 }
 </script>
+
 </body>
 </html>
