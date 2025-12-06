@@ -115,14 +115,8 @@
     border-bottom:1px solid #eee;
   }
 
-  .review-left{
-    max-width:60%;
-  }
-
-  .review-right{
-    text-align:right;
-  }
-
+  .review-left{ max-width:60%; }
+  .review-right{ text-align:right; }
   .small{font-size:13px;color:var(--muted)}
 
   /* BOTTOM BAR */
@@ -133,7 +127,7 @@
     bottom:0;
     background:#fff;
     padding:12px;
-    padding-bottom:65px; /* extra safe space */
+    padding-bottom:65px;
     border-top:1px solid #eee;
     box-shadow:0 -6px 18px rgba(0,0,0,.06);
     z-index:999;
@@ -214,6 +208,12 @@
       </div>
       <button id="confirmBtn" class="confirmBtn" onclick="confirmFinalOrder()">CONFIRM FINAL ORDER</button>
     </div>
+
+    <!-- PRINT BUTTON -->
+    <div style="margin-top:15px;text-align:right">
+      <button class="btn" onclick="printBill()">Print Bill</button>
+    </div>
+
   </div>
 </div>
 
@@ -231,10 +231,10 @@
 <script>
 /* ===== CONFIG ===== */
 const shopName = "Mounvee Snacks Centre";
-const phoneNumber = "917020330205"; // +91 7020330205
-const IMG_BB_KEY = "956539c8c9e7053902668964f579be06"; // ImgBB API Key (same as Krish Fast Food)
+const phoneNumber = "917020330205";
+const IMG_BB_KEY = "956539c8c9e7053902668964f579be06";
 
-/* ===== MENU ITEMS (with placeholder images) ===== */
+/* ===== MENU ITEMS ===== */
 const items = [
   {id:"1",  name:"Plain Dosa",    price:80,  image:"https://via.placeholder.com/400x260?text=Plain+Dosa"},
   {id:"2",  name:"Masala Dosa",   price:100, image:"https://via.placeholder.com/400x260?text=Masala+Dosa"},
@@ -252,8 +252,10 @@ const items = [
 ];
 
 /* ===== STATE ===== */
-let cart = {}; // id -> qty
+let cart = {};
+window.lastBillImage = null;
 
+/* Helper */
 function $(id){ return document.getElementById(id); }
 
 /* ===== MENU RENDER ===== */
@@ -262,9 +264,7 @@ function loadMenu(){
   items.forEach(it=>{
     html += `
       <div class="card">
-        <div class="imgwrap">
-          <img src="${it.image}" alt="${it.name}">
-        </div>
+        <div class="imgwrap"><img src="${it.image}"></div>
         <div class="item-title">${it.name}</div>
         <div class="price">₹${it.price}</div>
 
@@ -283,7 +283,7 @@ function loadMenu(){
 }
 loadMenu();
 
-/* ===== MENU QTY CHANGE ===== */
+/* ===== MENU QTY ===== */
 function changeMenuQty(id, delta){
   const el = $("mqty_"+id);
   let v = parseInt(el.innerText) || 1;
@@ -292,12 +292,11 @@ function changeMenuQty(id, delta){
   el.innerText = v;
 }
 
-/* ===== CART LOGIC ===== */
+/* ===== CART ===== */
 function addToCart(id){
-  const q = parseInt($("mqty_"+id).innerText) || 1;
-  cart[id] = (cart[id] || 0) + q;
+  const qty = parseInt($("mqty_"+id).innerText);
+  cart[id] = (cart[id] || 0) + qty;
   updateSummary();
-  alert("Added to cart");
 }
 
 function getCartItems(){
@@ -320,50 +319,40 @@ function updateSummary(){
     total += ci.lineTotal;
   });
   $("cartSummary").innerText = `${count} items • ₹${total}`;
-  $("bottomTotal").innerText = "₹"+total;
+  $("bottomTotal").innerText = "₹" + total;
   $("bottomBar").style.display = count>0 ? "block" : "none";
 }
 
-/* ===== REVIEW SCREEN ===== */
+/* ===== REVIEW ===== */
 function openReview(){
   const name = $("name_input").value.trim();
   const table = $("table_input").value.trim();
-  const cartItems = getCartItems();
+  const c = getCartItems();
 
-  if(!name || !table){
-    alert("Please enter Name and Table/Delivery before reviewing.");
-    return;
-  }
-  if(cartItems.length === 0){
-    alert("Cart is empty. Add some items first.");
-    return;
-  }
+  if(!name || !table){ alert("Please enter Name & Table."); return; }
+  if(c.length === 0){ alert("Cart is empty."); return; }
 
   $("reviewCustomer").innerText = `Customer: ${name} • ${table}`;
   renderReview();
   $("reviewModal").style.display = "flex";
 }
 
-function closeReview(){
-  $("reviewModal").style.display = "none";
-}
+function closeReview(){ $("reviewModal").style.display = "none"; }
 
 function renderReview(){
-  const list = $("reviewList");
-  const cartItems = getCartItems();
+  const c = getCartItems();
+  let total = 0;
+  let html = "";
 
-  if(cartItems.length === 0){
-    list.innerHTML = `<div class="small">No items in cart.</div>`;
+  if(c.length === 0){
+    $("reviewList").innerHTML = `<div class="small">Cart is empty.</div>`;
     $("reviewTotal").innerText = "₹0";
-    $("reviewModal").style.display = "none";
+    closeReview();
     updateSummary();
     return;
   }
 
-  let html = "";
-  let total = 0;
-
-  cartItems.forEach(ci=>{
+  c.forEach(ci=>{
     total += ci.lineTotal;
     html += `
       <div class="review-item">
@@ -371,15 +360,18 @@ function renderReview(){
           <div style="font-weight:800">${ci.name}</div>
           <div class="small">₹${ci.price} each</div>
         </div>
+
         <div class="review-right">
           <div style="font-weight:800">₹${ci.lineTotal}</div>
-          <div style="margin-top:6px;display:flex;gap:6px;align-items:center;justify-content:flex-end">
+
+          <div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end">
             <button class="qtyBtn" onclick="changeCartQty('${ci.id}',-1)">−</button>
             <span class="qtyNum">${ci.qty}</span>
             <button class="qtyBtn" onclick="changeCartQty('${ci.id}',1)">+</button>
           </div>
+
           <div style="margin-top:6px">
-            <button style="background:none;border:0;color:#d00;font-size:13px;cursor:pointer"
+            <button style="background:none;border:0;color:#d00;font-size:13px"
               onclick="removeItem('${ci.id}')">Remove</button>
           </div>
         </div>
@@ -387,8 +379,8 @@ function renderReview(){
     `;
   });
 
-  list.innerHTML = html;
-  $("reviewTotal").innerText = "₹"+total;
+  $("reviewList").innerHTML = html;
+  $("reviewTotal").innerText = "₹" + total;
 }
 
 function changeCartQty(id, delta){
@@ -404,13 +396,13 @@ function removeItem(id){
   updateSummary();
 }
 
-/* ===== BILL IMAGE GENERATION (CANVAS) ===== */
-function generateBillImageDataURL(cartItems, name, table, orderId){
+/* ===== BILL IMAGE GENERATOR ===== */
+function generateBillImageDataURL(c, name, table, orderId){
   return new Promise(resolve=>{
     let total = 0;
     let text = `${shopName}\nOrder ID: #${orderId}\nCustomer: ${name}\nTable/Delivery: ${table}\n\nItems:\n`;
 
-    cartItems.forEach(ci=>{
+    c.forEach(ci=>{
       text += `${ci.name} x${ci.qty} = ₹${ci.lineTotal}\n`;
       total += ci.lineTotal;
     });
@@ -418,24 +410,24 @@ function generateBillImageDataURL(cartItems, name, table, orderId){
     text += `\nTOTAL: ₹${total}\n\nThank you!`;
 
     const lines = text.split("\n");
-    const width = 480;          // smaller = faster upload
-    const lineHeight = 28;
-    const height = 40 + lines.length * lineHeight + 20;
+    const width = 480;
+    const height = 40 + lines.length * 28 + 20;
 
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    const ctx = canvas.getContext("2d");
 
-    ctx.fillStyle = "#ffffff";
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
     ctx.fillRect(0,0,width,height);
 
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = "#000";
     ctx.font = "18px Arial";
+
     let y = 30;
     lines.forEach(line=>{
       ctx.fillText(line, 20, y);
-      y += lineHeight;
+      y += 28;
     });
 
     const dataURL = canvas.toDataURL("image/png");
@@ -443,90 +435,95 @@ function generateBillImageDataURL(cartItems, name, table, orderId){
   });
 }
 
-/* ===== ImgBB UPLOAD ===== */
-async function uploadToImgBB(base64DataURL){
-  if(!IMG_BB_KEY) return "";
+/* ===== IMG BB UPLOAD ===== */
+async function uploadToImgBB(dataURL){
   try{
-    const base64 = base64DataURL.split(",")[1];
+    const base64 = dataURL.split(",")[1];
     const form = new FormData();
     form.append("key", IMG_BB_KEY);
     form.append("image", base64);
 
-    const resp = await fetch("https://api.imgbb.com/1/upload", {
-      method:"POST",
+    const res = await fetch("https://api.imgbb.com/1/upload", {
+      method: "POST",
       body: form
     });
-    const json = await resp.json();
-    if(json && json.success && json.data && json.data.url){
-      return json.data.url;
-    }
-    return "";
-  }catch(e){
-    console.error("ImgBB error", e);
+    const json = await res.json();
+
+    return json?.data?.url || "";
+  }catch{
     return "";
   }
+}
+
+/* ===== PRINT BILL ===== */
+function printBill(){
+  if(!window.lastBillImage){
+    alert("Generate bill first by confirming order.");
+    return;
+  }
+
+  const win = window.open("", "_blank");
+  win.document.write(`
+    <html>
+    <head><title>Print Bill</title></head>
+    <body>
+      <img src="${window.lastBillImage}" style="width:100%">
+      <script>
+        window.onload = function(){ window.print(); }
+      <\/script>
+    </body>
+    </html>
+  `);
+  win.document.close();
 }
 
 /* ===== CONFIRM FINAL ORDER ===== */
 async function confirmFinalOrder(){
   const name = $("name_input").value.trim();
   const table = $("table_input").value.trim();
-  const cartItems = getCartItems();
+  const c = getCartItems();
 
-  if(!name || !table){
-    alert("Please enter Name and Table/Delivery.");
-    return;
-  }
-  if(cartItems.length === 0){
-    alert("Cart is empty.");
-    return;
-  }
+  if(!name || !table){ alert("Please enter name & table."); return; }
+  if(c.length === 0){ alert("Cart empty."); return; }
 
-  const orderId = Math.floor(10000 + Math.random()*90000); // 5-digit
-
+  const orderId = Math.floor(10000 + Math.random()*90000);
   const btn = $("confirmBtn");
-  const oldLabel = btn.innerText;
+
   btn.innerText = "Processing...";
   btn.disabled = true;
 
   try{
-    const dataURL = await generateBillImageDataURL(cartItems, name, table, orderId);
-    const imageURL = await uploadToImgBB(dataURL);
+    const dataURL = await generateBillImageDataURL(c, name, table, orderId);
+    window.lastBillImage = dataURL;
+
+    const imgURL = await uploadToImgBB(dataURL);
 
     let total = 0;
-    const lines = cartItems.map(ci=>{
+    let lines = c.map(ci=>{
       total += ci.lineTotal;
       return `${ci.name} x${ci.qty} - ₹${ci.lineTotal}`;
     }).join("\n");
 
     let msg =
-      `*${shopName}*\n` +
-      `Order ID: *#${orderId}*\n\n` +
+      `*${shopName}*\nOrder ID: *#${orderId}*\n\n` +
       `${lines}\n\n` +
-      `🧾 *Total: ₹${total}*\n\n` +
-      `👤 Customer: ${name}\n` +
-      `📍 Table/Delivery: ${table}`;
+      `*Total: ₹${total}*\n\n` +
+      `Customer: ${name}\nTable/Delivery: ${table}`;
 
-    if(imageURL){
-      msg += `\n\n🖼 Bill Image:\n${imageURL}`;
-    }
+    if(imgURL) msg += `\n\nBill Image:\n${imgURL}`;
 
-    const encoded = encodeURIComponent(msg);
-    window.open(`https://wa.me/${phoneNumber}?text=${encoded}`, "_blank");
+    window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(msg)}`, "_blank");
 
-    // reset
     cart = {};
     updateSummary();
     closeReview();
-    alert("Final order prepared — WhatsApp opened for owner.");
-  }catch(err){
-    console.error(err);
-    alert("Error while processing order. Please try again.");
+
   }finally{
-    btn.innerText = oldLabel;
+    btn.innerText = "CONFIRM FINAL ORDER";
     btn.disabled = false;
   }
 }
 </script>
+
 </body>
 </html>
