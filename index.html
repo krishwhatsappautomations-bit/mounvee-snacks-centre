@@ -13,7 +13,6 @@
   h1{font-size:20px;margin:0}
   .lead{color:var(--muted);font-size:13px;margin-top:4px}
 
-  /* MENU GRID */
   #menuGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}
   .card{background:var(--card);padding:12px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
   .imgwrap{height:140px;border-radius:8px;overflow:hidden;background:#f0f0f0;margin-bottom:8px}
@@ -26,17 +25,14 @@
   .qtyNum{width:28px;text-align:center;font-weight:700}
   .btn{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer}
 
-  /* REVIEW MODAL */
   #reviewModal{display:none;position:fixed;left:0;right:0;top:0;bottom:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:9999}
   .modalCard{width:92%;max-width:820px;background:#fff;border-radius:10px;padding:14px;max-height:88vh;overflow:auto}
   .review-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee}
   .small{font-size:13px;color:var(--muted)}
 
-  /* EXPIRY SCREEN */
   #expiredScreen{display:none;padding:30px;text-align:center}
   #expiredScreen .card{max-width:720px;margin:40px auto;padding:20px;background:#fff;border-radius:10px;box-shadow:0 6px 26px rgba(0,0,0,.08)}
 
-  /* BOTTOM BAR */
   .bottom-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;padding:12px;padding-bottom:65px;border-top:1px solid #eee;box-shadow:0 -6px 18px rgba(0,0,0,.06);z-index:999}
   .bar-inner{max-width:980px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
   .confirmBtn{background:var(--accent);color:#fff;padding:12px 18px;border-radius:8px;border:0;font-weight:700;cursor:pointer;width:260px}
@@ -66,19 +62,24 @@
 
   <div id="menuGrid"></div>
 
-  <!-- CUSTOMER DETAILS -->
   <div style="margin-top:12px; margin-bottom:140px;" class="card">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <input id="name_input" placeholder="Your Name" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc">
-      <input id="table_input" placeholder="Table / Delivery (e.g. Table 4 / Home)" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc">
+      <input id="name_input" placeholder="Your Name"
+             style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc">
+
+      <!-- TABLE NON-EDITABLE HERE -->
+      <input id="table_input"
+             placeholder="Table"
+             style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f2f2f2"
+             readonly>
     </div>
+
     <div style="margin-top:10px">
       <button class="btn" onclick="openReview()">Review Order</button>
     </div>
   </div>
 </div>
 
-<!-- REVIEW MODAL -->
 <div id="reviewModal">
   <div class="modalCard">
     <div style="display:flex;justify-content:space-between;align-items:center">
@@ -101,7 +102,6 @@
   </div>
 </div>
 
-<!-- BOTTOM BAR -->
 <div id="bottomBar" class="bottom-bar" style="display:none">
   <div class="bar-inner">
     <div>
@@ -113,72 +113,55 @@
 </div>
 
 <script>
-/* ===== CONFIG ===== */
 const shopName = "Mounvee Snacks Centre";
 const phoneNumber = "917020330205";
 const IMG_BB_KEY = "956539c8c9e7053902668964f579be06";
 
-// FIXED print page (must match your repo)
 const PRINT_BASE = "https://krishwhatsappautomations-bit.github.io/mounvee-snacks-centre/print.html";
 
-/* ===== EXPIRY (Option B - FULL LOCK) ===== */
-// set expiry date as requested:
-const EXPIRY_DATE = new Date("2025-12-09T23:59:59"); // <--- change this when renewing
+const EXPIRY_DATE = new Date("2025-12-11T23:59:59");
 
-/* ===== MENU ITEMS (images optional, replace with your i.ibb.co direct links) ===== */
 const items = [
-  {id:"1",  name:"Plain Dosa",    price:80,  image:"https://i.ibb.co/mCtPHt7v/Chat-GPT-Image-Dec-7-2025-11-50-09-AM.png"},
-  {id:"2",  name:"Masala Dosa",   price:100, image:"https://i.ibb.co/v4YBTVwS/Chat-GPT-Image-Dec-7-2025-12-09-26-PM.png"},
-  {id:"3",  name:"Vada Pav",      price:25,  image:"https://i.ibb.co/wNT3Yq9m/Chat-GPT-Image-Dec-7-2025-12-25-13-PM.png"},
-  {id:"4",  name:"Idli Sambar",   price:50,  image:"https://i.ibb.co/0jVWJ18Z/Chat-GPT-Image-Dec-7-2025-12-44-22-PM.png"},
-  {id:"5",  name:"Sambar Wada",   price:50,  image:"https://i.ibb.co/xSwJmxH0/Chat-GPT-Image-Dec-7-2025-12-47-58-PM.png"},
-  {id:"6",  name:"Samosa",        price:40,  image:"https://i.ibb.co/WN8GXT81/Chat-GPT-Image-Dec-7-2025-12-51-15-PM.png"},
-  {id:"7",  name:"Kachori",       price:40,  image:"https://i.ibb.co/zTjGmHgV/Chat-GPT-Image-Dec-7-2025-12-56-01-PM.png"},
-  {id:"8",  name:"Uttapam",       price:100, image:"https://i.ibb.co/67Vn7FxR/Dec-7-2025-01-00-48-PM.png"},
-  {id:"9",  name:"Dahi Samosa",   price:70,  image:"https://i.ibb.co/ymGb8XGN/Chat-GPT-Image-Dec-7-2025-01-04-02-PM.png"},
-  {id:"10", name:"Cold Coffee",   price:60,  image:"https://i.ibb.co/RpRHdSWp/Chat-GPT-Image-Dec-7-2025-01-08-08-PM.png"},
-  {id:"11", name:"Icecream",      price:50,  image:"https://i.ibb.co/tpXj71R1/Chat-GPT-Image-Dec-7-2025-01-08-35-PM.png"},
-  {id:"12", name:"Tea",           price:20,  image:"https://i.ibb.co/KcQDmksv/Chat-GPT-Image-Dec-7-2025-01-11-22-PM.png"},
-  {id:"13", name:"Water Bottle",  price:20,  image:"https://i.ibb.co/7t8tJSvD/Chat-GPT-Image-Dec-7-2025-01-16-01-PM.png"}
+  {id:"1", name:"Plain Dosa", price:80, image:"https://i.ibb.co/3yqGXtJ3/Chat-GPT-Image-Dec-7-2025-10-21-46-AM.png"},
+  {id:"2", name:"Masala Dosa", price:100, image:"https://i.ibb.co/your-masala.png"},
+  {id:"3", name:"Vada Pav", price:25, image:"https://i.ibb.co/your-vadapav.png"},
+  {id:"4", name:"Idli Sambar", price:50, image:"https://i.ibb.co/your-idli.png"},
+  {id:"5", name:"Sambar Wada", price:50, image:"https://i.ibb.co/your-wada.png"},
+  {id:"6", name:"Samosa", price:40, image:"https://i.ibb.co/your-samosa.png"},
+  {id:"7", name:"Kachori", price:40, image:"https://i.ibb.co/your-kachori.png"},
+  {id:"8", name:"Uttapam", price:100, image:"https://i.ibb.co/your-uttapam.png"},
+  {id:"9", name:"Dahi Samosa", price:70, image:"https://i.ibb.co/your-dahi.png"},
+  {id:"10", name:"Cold Coffee", price:60, image:"https://i.ibb.co/your-coffee.png"},
+  {id:"11", name:"Icecream", price:50, image:"https://i.ibb.co/your-icecream.png"},
+  {id:"12", name:"Tea", price:20, image:"https://i.ibb.co/your-tea.png"},
+  {id:"13", name:"Water Bottle", price:20, image:"https://i.ibb.co/your-water.png"}
 ];
 
-/* ===== STATE ===== */
 let cart = {};
 window.lastBillImage = null;
 
-/* ===== UTIL ===== */
 function $(id){ return document.getElementById(id); }
 
-/* ===== CHECK EXPIRY & AUTO-TABLE ON LOAD ===== */
 function handleInit(){
-  // 1) Auto-fill table from URL param if present
   const params = new URLSearchParams(window.location.search);
   const t = params.get("table");
   if(t){
     $("table_input").value = "Table " + t;
   }
 
-  // 2) Check expiry
-  const now = new Date();
-  if(now > EXPIRY_DATE){
-    // show expired screen, hide main area
+  if(new Date() > EXPIRY_DATE){
     $("mainArea").style.display = "none";
     $("expiredScreen").style.display = "block";
-    // also hide bottomBar and review modal if open
     $("bottomBar").style.display = "none";
     $("reviewModal").style.display = "none";
     return;
   } else {
-    // active
     $("mainArea").style.display = "block";
-    $("expiredScreen").style.display = "none";
   }
 }
 handleInit();
 
-/* ===== RENDER MENU ===== */
 function loadMenu(){
-  // if expired, don't render menu
   if(new Date() > EXPIRY_DATE) return;
 
   let html="";
@@ -202,7 +185,6 @@ function loadMenu(){
 }
 loadMenu();
 
-/* ===== MENU QTY ===== */
 function menuQty(id, delta){
   const el = $("mqty_"+id);
   let v = parseInt(el.innerText) || 1;
@@ -211,9 +193,7 @@ function menuQty(id, delta){
   el.innerText = v;
 }
 
-/* ===== CART ===== */
 function addToCart(id){
-  // if expired, block
   if(new Date() > EXPIRY_DATE){ alert("Subscription expired. Please contact support."); return; }
 
   const qty = parseInt($("mqty_"+id).innerText) || 1;
@@ -243,9 +223,7 @@ function updateSummary(){
   $("bottomBar").style.display = count>0 ? "block" : "none";
 }
 
-/* ===== REVIEW ===== */
 function openReview(){
-  // expiry check
   if(new Date() > EXPIRY_DATE){ alert("Subscription expired. Please contact support."); return; }
 
   const name = $("name_input").value.trim();
@@ -287,7 +265,8 @@ function renderReview(){
             <span class="qtyNum">${ci.qty}</span>
             <button class="qtyBtn" onclick="changeQty('${ci.id}',1)">+</button>
           </div>
-          <button style="margin-top:6px;background:none;border:0;color:#d00;font-size:13px" onclick="removeItem('${ci.id}')">Remove</button>
+          <button style="margin-top:6px;background:none;border:0;color:#d00;font-size:13px"
+                  onclick="removeItem('${ci.id}')">Remove</button>
         </div>
       </div>
     `;
@@ -302,9 +281,13 @@ function changeQty(id, delta){
   renderReview();
   updateSummary();
 }
-function removeItem(id){ delete cart[id]; renderReview(); updateSummary(); }
 
-/* ===== BILL IMAGE GENERATION ===== */
+function removeItem(id){
+  delete cart[id];
+  renderReview();
+  updateSummary();
+}
+
 function generateBillImageDataURL(cartItems, name, table, orderId){
   return new Promise(resolve=>{
     let total = 0;
@@ -342,7 +325,6 @@ function generateBillImageDataURL(cartItems, name, table, orderId){
   });
 }
 
-/* ===== ImgBB UPLOAD ===== */
 async function uploadToImgBB(base64DataURL){
   if(!IMG_BB_KEY) return "";
   try{
@@ -360,17 +342,13 @@ async function uploadToImgBB(base64DataURL){
   }
 }
 
-/* ===== PRINT (owner) helper ===== */
 function openPrintWindow(dataURL){
-  // open a new tab with the generated image (useful if ImgBB fails; also owner can print)
   const win = window.open();
   win.document.write(`<img src="${dataURL}" style="width:100%;">`);
   win.document.close();
 }
 
-/* ===== CONFIRM FINAL ORDER ===== */
 async function confirmFinalOrder(){
-  // final expiry check
   if(new Date() > EXPIRY_DATE){ alert("Subscription expired. Please contact support."); return; }
 
   const name = $("name_input").value.trim();
@@ -385,15 +363,11 @@ async function confirmFinalOrder(){
   btn.innerText = "Processing..."; btn.disabled = true;
 
   try{
-    // generate local bill image
     const dataURL = await generateBillImageDataURL(cartItems, name, table, orderId);
-    // store last bill for printing fallback
     window.lastBillImage = dataURL;
 
-    // upload to ImgBB
     const imgURL = await uploadToImgBB(dataURL);
 
-    // prepare message
     let total = 0;
     const lines = cartItems.map(ci => { total += ci.lineTotal; return `${ci.name} x${ci.qty} - ₹${ci.lineTotal}`; }).join("\n");
 
@@ -415,10 +389,8 @@ Bill Image:
 ${imgURL || "(Image not uploaded)"}`
     ;
 
-    // open WhatsApp
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(msg)}`, "_blank");
 
-    // reset cart & UI
     cart = {}; updateSummary(); closeReview();
     alert("Final order prepared — WhatsApp opened for owner.");
   }catch(err){
@@ -429,14 +401,7 @@ ${imgURL || "(Image not uploaded)"}`
   }
 }
 
-/* ===== INIT UI STATES ===== */
 updateSummary();
 </script>
 </body>
 </html>
-
-
-
-
-
-
